@@ -48,6 +48,7 @@ class Alipay implements GatewayApplicationInterface
      */
     const URL = [
         self::MODE_NORMAL => 'https://openapi.alipay.com/gateway.do?charset=utf-8',
+        self::MODE_SERVICE => 'https://openapi.alipay.com/gateway.do?charset=utf-8',
         self::MODE_DEV => 'https://openapi.alipaydev.com/gateway.do?charset=utf-8',
     ];
 
@@ -77,7 +78,7 @@ class Alipay implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param Config $config
+     * @throws \Exception
      */
     public function __construct(Config $config)
     {
@@ -96,6 +97,11 @@ class Alipay implements GatewayApplicationInterface
             'biz_content' => '',
             'app_auth_token' => $config->get('app_auth_token'),
         ];
+
+        if ($config->get('app_cert_public_key') && $config->get('alipay_root_cert')) {
+            $this->payload['app_cert_sn'] = Support::getCertSN($config->get('app_cert_public_key'));
+            $this->payload['alipay_root_cert_sn'] = Support::getRootCertSN($config->get('alipay_root_cert'));
+        }
     }
 
     /**
@@ -161,12 +167,9 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param array|null $data
-     * @param bool       $refund
      *
      * @throws InvalidSignException
      * @throws InvalidConfigException
-     *
-     * @return Collection
      */
     public function verify($data = null, bool $refund = false): Collection
     {
@@ -197,13 +200,10 @@ class Alipay implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string|array $order
-     * @param string       $type
      *
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function find($order, string $type = 'wap'): Collection
     {
@@ -229,13 +229,9 @@ class Alipay implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param array $order
-     *
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function refund(array $order): Collection
     {
@@ -258,8 +254,6 @@ class Alipay implements GatewayApplicationInterface
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function cancel($order): Collection
     {
@@ -282,8 +276,6 @@ class Alipay implements GatewayApplicationInterface
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function close($order): Collection
     {
@@ -306,8 +298,6 @@ class Alipay implements GatewayApplicationInterface
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return string
      */
     public function download($bill): string
     {
@@ -326,14 +316,12 @@ class Alipay implements GatewayApplicationInterface
      * Reply success to alipay.
      *
      * @author yansongda <me@yansongda.cn>
-     *
-     * @return Response
      */
     public function success(): Response
     {
         Events::dispatch(new Events\MethodCalled('Alipay', 'Success', $this->gateway));
 
-        return Response::create('success');
+        return new Response('success');
     }
 
     /**
@@ -341,18 +329,12 @@ class Alipay implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param string   $method
-     * @param callable $function
-     * @param bool     $now
-     *
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection|null
      */
-    public function extend(string $method, callable $function, bool $now = true): ?Collection
+    public function extend(string $method, callable $function, bool $now = true, bool $response = false): ?Collection
     {
         if (!$now && !method_exists($this, $method)) {
             $this->extends[$method] = $function;
@@ -372,7 +354,7 @@ class Alipay implements GatewayApplicationInterface
             $this->payload = $customize;
             $this->payload['sign'] = Support::generateSign($this->payload);
 
-            return Support::requestApi($this->payload);
+            return Support::requestApi($this->payload, $response);
         }
 
         return $customize;
@@ -382,8 +364,6 @@ class Alipay implements GatewayApplicationInterface
      * Make pay gateway.
      *
      * @author yansongda <me@yansongda.cn>
-     *
-     * @param string $gateway
      *
      * @throws InvalidGatewayException
      *
@@ -407,15 +387,10 @@ class Alipay implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param string $method
-     * @param array  $params
-     *
      * @throws GatewayException
      * @throws InvalidArgumentException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     protected function makeExtend(string $method, array ...$params): Collection
     {

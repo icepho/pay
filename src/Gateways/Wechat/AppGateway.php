@@ -20,14 +20,11 @@ class AppGateway extends Gateway
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $endpoint
-     * @param array  $payload
      *
      * @throws GatewayException
      * @throws InvalidArgumentException
      * @throws InvalidSignException
      * @throws Exception
-     *
-     * @return Response
      */
     public function pay($endpoint, array $payload): Response
     {
@@ -50,15 +47,13 @@ class AppGateway extends Gateway
 
         Events::dispatch(new Events\PayStarted('Wechat', 'App', $endpoint, $pay_request));
 
-        return JsonResponse::create($pay_request);
+        return new JsonResponse($pay_request);
     }
 
     /**
      * Get trade type config.
      *
      * @author yansongda <me@yansongda.cn>
-     *
-     * @return string
      */
     protected function getTradeType(): string
     {

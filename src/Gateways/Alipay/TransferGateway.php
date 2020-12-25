@@ -17,21 +17,14 @@ class TransferGateway implements GatewayInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $endpoint
-     * @param array  $payload
      *
      * @throws GatewayException
      * @throws InvalidConfigException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function pay($endpoint, array $payload): Collection
     {
-        $payload['method'] = 'alipay.fund.trans.toaccount.transfer';
-        $payload['biz_content'] = json_encode(array_merge(
-            json_decode($payload['biz_content'], true),
-            ['product_code' => '']
-        ));
+        $payload['method'] = 'alipay.fund.trans.uni.transfer';
         $payload['sign'] = Support::generateSign($payload);
 
         Events::dispatch(new Events\PayStarted('Alipay', 'Transfer', $endpoint, $payload));
@@ -45,8 +38,6 @@ class TransferGateway implements GatewayInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param $order
-     *
-     * @return array
      */
     public function find($order): array
     {

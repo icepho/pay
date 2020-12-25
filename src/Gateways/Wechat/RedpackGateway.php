@@ -18,13 +18,10 @@ class RedpackGateway extends Gateway
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $endpoint
-     * @param array  $payload
      *
      * @throws GatewayException
      * @throws InvalidArgumentException
      * @throws InvalidSignException
-     *
-     * @return Collection
      */
     public function pay($endpoint, array $payload): Collection
     {
@@ -53,11 +50,25 @@ class RedpackGateway extends Gateway
     }
 
     /**
-     * Get trade type config.
+     * Find.
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @return string
+     * @param $billno
+     */
+    public function find($billno): array
+    {
+        return [
+            'endpoint' => 'mmpaymkttransfers/gethbinfo',
+            'order' => ['mch_billno' => $billno, 'bill_type' => 'MCHT'],
+            'cert' => true,
+        ];
+    }
+
+    /**
+     * Get trade type config.
+     *
+     * @author yansongda <me@yansongda.cn>
      */
     protected function getTradeType(): string
     {

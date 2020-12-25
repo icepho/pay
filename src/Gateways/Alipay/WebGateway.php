@@ -17,12 +17,9 @@ class WebGateway extends Gateway
      * @author yansongda <me@yansongda.cn>
      *
      * @param string $endpoint
-     * @param array  $payload
      *
      * @throws InvalidConfigException
      * @throws InvalidArgumentException
-     *
-     * @return Response
      */
     public function pay($endpoint, array $payload): Response
     {
@@ -50,8 +47,6 @@ class WebGateway extends Gateway
      * @author yansongda <me@yansongda.cn>
      *
      * @param $order
-     *
-     * @return array
      */
     public function find($order): array
     {
@@ -69,13 +64,11 @@ class WebGateway extends Gateway
      * @param string $endpoint
      * @param array  $payload
      * @param string $method
-     *
-     * @return Response
      */
     protected function buildPayHtml($endpoint, $payload, $method = 'POST'): Response
     {
         if ('GET' === strtoupper($method)) {
-            return RedirectResponse::create($endpoint.'&'.http_build_query($payload));
+            return new RedirectResponse($endpoint.'&'.http_build_query($payload));
         }
 
         $sHtml = "<form id='alipay_submit' name='alipay_submit' action='".$endpoint."' method='".$method."'>";
@@ -86,15 +79,13 @@ class WebGateway extends Gateway
         $sHtml .= "<input type='submit' value='ok' style='display:none;'></form>";
         $sHtml .= "<script>document.forms['alipay_submit'].submit();</script>";
 
-        return Response::create($sHtml);
+        return new Response($sHtml);
     }
 
     /**
      * Get method config.
      *
      * @author yansongda <me@yansongda.cn>
-     *
-     * @return string
      */
     protected function getMethod(): string
     {
@@ -105,8 +96,6 @@ class WebGateway extends Gateway
      * Get productCode config.
      *
      * @author yansongda <me@yansongda.cn>
-     *
-     * @return string
      */
     protected function getProductCode(): string
     {

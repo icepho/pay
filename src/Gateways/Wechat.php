@@ -87,8 +87,6 @@ class Wechat implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param Config $config
-     *
      * @throws Exception
      */
     public function __construct(Config $config)
@@ -162,12 +160,9 @@ class Wechat implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string|null $content
-     * @param bool        $refund
      *
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection
      */
     public function verify($content = null, bool $refund = false): Collection
     {
@@ -198,13 +193,10 @@ class Wechat implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @param string|array $order
-     * @param string       $type
      *
      * @throws GatewayException
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection
      */
     public function find($order, string $type = 'wap'): Collection
     {
@@ -236,13 +228,9 @@ class Wechat implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param array $order
-     *
      * @throws GatewayException
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection
      */
     public function refund(array $order): Collection
     {
@@ -267,14 +255,12 @@ class Wechat implements GatewayApplicationInterface
      * @throws GatewayException
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection
      */
     public function cancel($order): Collection
     {
         unset($this->payload['spbill_create_ip']);
 
-        $this->payload = Support::filterPayload($this->payload, $order, true);
+        $this->payload = Support::filterPayload($this->payload, $order);
 
         Events::dispatch(new Events\MethodCalled('Wechat', 'Cancel', $this->gateway, $this->payload));
 
@@ -295,8 +281,6 @@ class Wechat implements GatewayApplicationInterface
      * @throws GatewayException
      * @throws InvalidSignException
      * @throws InvalidArgumentException
-     *
-     * @return Collection
      */
     public function close($order): Collection
     {
@@ -315,14 +299,12 @@ class Wechat implements GatewayApplicationInterface
      * @author yansongda <me@yansongda.cn>
      *
      * @throws InvalidArgumentException
-     *
-     * @return Response
      */
     public function success(): Response
     {
         Events::dispatch(new Events\MethodCalled('Wechat', 'Success', $this->gateway));
 
-        return Response::create(
+        return new Response(
             Support::toXml(['return_code' => 'SUCCESS', 'return_msg' => 'OK']),
             200,
             ['Content-Type' => 'application/xml']
@@ -334,12 +316,8 @@ class Wechat implements GatewayApplicationInterface
      *
      * @author yansongda <me@yansongda.cn>
      *
-     * @param array $params
-     *
      * @throws GatewayException
      * @throws InvalidArgumentException
-     *
-     * @return string
      */
     public function download(array $params): string
     {
